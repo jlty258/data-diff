@@ -1,0 +1,70 @@
+# DataMonitor 配置文件示例
+
+[database]
+# 数据库连接配置
+prod = { driver = "postgresql", host = "prod-db.example.com", database = "mydb", user = "user", password = "${DB_PASSWORD}" }
+staging = { driver = "postgresql", host = "staging-db.example.com", database = "mydb", user = "user", password = "${DB_PASSWORD}" }
+
+# 监控规则配置
+[monitor.rules.orders_diff]
+name = "orders_diff"
+type = "data_diff"
+database1 = "prod"
+table1 = "orders"
+database2 = "staging"
+table2 = "orders"
+key_columns = ["order_id"]
+update_column = "updated_at"
+extra_columns = ["amount", "status"]
+threshold_type = "diff_percent"
+threshold_operator = ">"
+threshold_value = 1.0
+schedule = "0 */6 * * *"  # 每6小时执行一次
+description = "监控生产环境和预发布环境的订单表差异"
+enabled = true
+
+[monitor.rules.users_count]
+name = "users_count"
+type = "row_count"
+database1 = "prod"
+table1 = "users"
+threshold_type = "row_count_diff"
+threshold_operator = ">"
+threshold_value = 100
+schedule = "0 0 * * *"  # 每天执行一次
+description = "监控用户表行数变化"
+enabled = true
+
+# 告警配置
+[monitor.alerts]
+# 日志告警（默认启用）
+[monitor.alerts.log]
+enabled = true
+
+# 邮件告警
+[monitor.alerts.email]
+enabled = false
+smtp_host = "smtp.example.com"
+smtp_port = 587
+smtp_user = "alerts@example.com"
+smtp_password = "${SMTP_PASSWORD}"
+from_email = "data-monitor@example.com"
+to_emails = ["team@example.com", "ops@example.com"]
+
+# Webhook 告警
+[monitor.alerts.webhook]
+enabled = false
+url = "https://your-webhook-url.com/alert"
+headers = { "Authorization" = "Bearer ${WEBHOOK_TOKEN}" }
+timeout = 10
+
+# Slack 告警
+[monitor.alerts.slack]
+enabled = false
+webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# 钉钉告警
+[monitor.alerts.dingtalk]
+enabled = false
+webhook_url = "https://oapi.dingtalk.com/robot/send?access_token=YOUR_TOKEN"
+
